@@ -4,27 +4,38 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
+
+	"github.com/dylanmccormick/pokedexcli/internal/pokeapi"
 )
 
-func StartRepl() {
+func StartRepl(cfg *config) {
 	fmt.Println("welcom to the pokedex")
 	scanner := bufio.NewScanner(os.Stdin)
-	c := &config{
-		next:     "https://pokeapi.co/api/v2/location-area/",
-		previous: "",
-	}
 	for {
-		fmt.Printf("pokedex > ")
+		fmt.Printf("Pokedex > ")
 		scanner.Scan()
-		text := scanner.Text()
 
-		err := controller(text, c)
+		text := cleanInput(scanner.Text())
+		if len(text) == 0 {
+			continue
+		}
+
+		cmd := text[0]
+
+		err := controller(cmd, cfg)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 	}
 
+}
+
+func cleanInput(text string) []string {
+	output := strings.ToLower(text)
+	words := strings.Fields(output)
+	return words
 }
 
 type cliCommand struct {
@@ -34,8 +45,9 @@ type cliCommand struct {
 }
 
 type config struct {
-	previous string
-	next     string
+	pokeapiClient        pokeapi.Client
+	previousLocationsURL *string
+	nextLocationsUrl     *string
 }
 
 func commands() map[string]cliCommand {

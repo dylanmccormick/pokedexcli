@@ -9,12 +9,16 @@ import (
 func StartRepl() {
 	fmt.Println("welcom to the pokedex")
 	scanner := bufio.NewScanner(os.Stdin)
+	c := &config{
+		next:     "https://pokeapi.co/api/v2/location-area/",
+		previous: "",
+	}
 	for {
 		fmt.Printf("pokedex > ")
 		scanner.Scan()
 		text := scanner.Text()
 
-		err := controller(text)
+		err := controller(text, c)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -26,7 +30,12 @@ func StartRepl() {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(c *config) error
+}
+
+type config struct {
+	previous string
+	next     string
 }
 
 func commands() map[string]cliCommand {
@@ -41,28 +50,31 @@ func commands() map[string]cliCommand {
 			description: "Exits the program",
 			callback:    CommandExit,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays the next list of 20 regions",
+			callback:    CommandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays the next list of 20 regions",
+			callback:    CommandMapB,
+		},
 	}
 }
 
-func controller(s string) error {
+func controller(s string, c *config) error {
 	commands := commands()
 
-	switch {
-	case s == "help":
-		err := commands[s].callback()
-		if err != nil {
-			return err
-		}
-	case s == "exit":
-		err := commands[s].callback()
-		if err != nil {
-			return err
-		}
-
-	default:
+	if _, ok := commands[s]; !ok {
 		return fmt.Errorf("invalid command")
-
 	}
+
+	err := commands[s].callback(c)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }

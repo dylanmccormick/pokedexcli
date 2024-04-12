@@ -22,8 +22,12 @@ func StartRepl(cfg *config) {
 		}
 
 		cmd := text[0]
+		args := []string{}
+		if len(text) > 1 {
+			args = text[1:]
+		}
 
-		err := controller(cmd, cfg)
+		err := controller(cmd, cfg, args...)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -41,7 +45,7 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(c *config) error
+	callback    func(*config, ...string) error
 }
 
 type config struct {
@@ -72,17 +76,27 @@ func commands() map[string]cliCommand {
 			description: "Displays the next list of 20 regions",
 			callback:    CommandMapB,
 		},
+		"explore": {
+			name:        "explore <location-name>",
+			description: "Explores a given location",
+			callback:    CommandExplore,
+		},
+		"catch": {
+			name:        "catch <pokemon-name>",
+			description: "Attempts to catch a given pokemon",
+			callback:    CommandCatch,
+		},
 	}
 }
 
-func controller(s string, c *config) error {
+func controller(s string, c *config, args ...string) error {
 	commands := commands()
 
 	if _, ok := commands[s]; !ok {
 		return fmt.Errorf("invalid command")
 	}
 
-	err := commands[s].callback(c)
+	err := commands[s].callback(c, args...)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func CommandExit(c *config) error {
+func CommandExit(c *config, _ ...string) error {
 	fmt.Println("exiting the program")
 	os.Exit(0)
 	return nil
